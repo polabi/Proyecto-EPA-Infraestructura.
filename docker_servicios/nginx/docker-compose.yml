@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # Servidor Web (Portal PQRS - DMZ)
+  web_epa:
+    image: nginx:alpine
+    container_name: epa_portal_web
+    restart: always
+    ports:
+      - "80:80"
+    networks:
+      - red_dmz
+    depends_on:
+      - db_epa
+
+  # Base de Datos (Facturación y PQRS - Red Interna)
+  db_epa:
+    image: mysql:8.0
+    container_name: epa_base_datos
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: AdminEpaPassword2026!
+      MYSQL_DATABASE: bd_epa_pqrs
+      MYSQL_USER: user_epa
+      MYSQL_PASSWORD: UserEpaPassword2026!
+    volumes:
+      - epa_db_data:/var/lib/mysql
+      - ../mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - red_datos
+
+# Redes virtuales simulando el diseño de Packet Tracer
+networks:
+  red_dmz:
+    driver: bridge
+  red_datos:
+    driver: bridge
+
+# Volumen persistente para que los datos no se borren si el contenedor se apaga
+volumes:
+  epa_db_data:
